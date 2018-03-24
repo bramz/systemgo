@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"syscall"
+	"time"
 )
 
 type Proc struct {
@@ -45,7 +47,6 @@ func main() {
 			fmt.Println(err)
 		}
 		fmt.Println("Started", pn)
-		fmt.Println(cmd.Process.Pid)
 
 		file, err := os.Create("pidfiles/" + filename + ".pid")
 		if err != nil {
@@ -54,23 +55,31 @@ func main() {
 		defer file.Close()
 		pid := []byte(strconv.Itoa(cmd.Process.Pid))
 		file.Write(pid)
-	case "stop":
-		pid, err := ioutil.ReadFile("pidfiles/" + filename + ".pid")
+
+		fpid, err := ioutil.ReadFile("pidfiles/" + filename + ".pid")
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println(string(pid))
-        run := "kill -9 " + string(pid)
-        cmd := exec.Command(run)
-        err = cmd.Run()
-        if err != nil {
-            fmt.Println(err)
-        }
-		//        cmd := exec.Command("kill -9 " + pid)
-		//		err := cmd.Start()
-		//		if err != nil {
-		//			fmt.Println(err)
-		//		}
+		fmt.Println("watching " + pn + " with pid: " + string(fpid))
+		fmt.Printf("%v", time.Now())
+		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+        // uncomment for parent loop
+		//        for {
+		//            time.Sleep(time.Second)
+		//        }
+	case "stop":
+		pid, err := ioutil.ReadFile("pidfiles/" + filename + ".pid")
+		spid := string(pid)
+		out, err := exec.Command("kill", "-9", spid).CombinedOutput()
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			if string(out) == "" {
+			}
+			fmt.Println("stopping", pn)
+			fmt.Println(out)
+
+		}
 	case "restart":
 	default:
 		fmt.Println("usage: <application> <start/stop/restart>")
