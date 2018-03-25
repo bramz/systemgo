@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	//	"github.com/howeyc/fsnotify"
 	"github.com/fsnotify/fsnotify"
 	"io/ioutil"
 	"os"
@@ -13,8 +12,6 @@ import (
 	"syscall"
 	"time"
 )
-
-//var watcher *fsnotify.Watcher
 
 type Proc struct {
 	Name string
@@ -90,25 +87,6 @@ func main() {
 		fmt.Printf("%v", time.Now())
 		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
-		/*
-			done := make(chan bool)
-			go func(done chan bool) {
-				defer func() {
-					done <- true
-				}()
-
-				watchfile := "~/systemgo/bin/" + filename
-				err := watchProc(watchfile)
-				if err != nil {
-					fmt.Println(err)
-				}
-
-				fmt.Println("File has been changed")
-				fmt.Println(filename)
-			}(done)
-			<-done
-		*/
-
 		watcher, err := fsnotify.NewWatcher()
 		if err != nil {
 			fmt.Println(err)
@@ -116,37 +94,33 @@ func main() {
 
 		done := make(chan bool)
 
-		// Process events
+		// handle events
 		go func() {
 			for {
 				select {
 				case event := <-watcher.Events:
-					fmt.Println("event:", event)
-					if event.Op&fsnotify.Write == fsnotify.Write {
-						fmt.Println("modified file:", event.Name)
-						/*                        kill := exec.Command("TASKKILL", "/T", "/F", "/PID", strconv.Itoa(cmd.Process.Pid))
-						                          err = kill.Run()
-						                          if err != nil {
-						                              fmt.Println(err)
-						                          }
-						*/
-//						kill1 := exec.Command("kill", "-9", strconv.Itoa(cmd.Process.Pid))
-//						kill1.Start()
-//						kill2 := exec.Command("kill", "-9", strconv.Itoa(os.Getppid()))
-//						kill2.Start()
-					}
-				case err := <-watcher.Errors:
+					fmt.Println("\nevent:", event)
+                    if event.Op&fsnotify.Chmod == fsnotify.Chmod {
+                        fmt.Println("Rebuild issued, restarting", cmd.Process.Pid)
+                        kill := exec.Command("kill", "-9", strconv.Itoa(cmd.Process.Pid))
+                        kill.Start()
+                        cmd.Process.Kill()
+                        cmd.Run()
+                        run := exec.Command("./systemgo", pn, "start")
+                        run.Start()
+                        os.Exit(1)
+                    }
+    			case err := <-watcher.Errors:
 					fmt.Println("error:", err)
 				}
 			}
 		}()
 
-		err = watcher.Add("bin")
+		err = watcher.Add(pn)
 		if err != nil {
 			fmt.Println(err)
 		}
 
-		// Hang so program doesn't exit
         <-done
 
 		watcher.Close()
@@ -163,8 +137,7 @@ func main() {
 			fmt.Println(out)
 
 		}
-	case "restart":
 	default:
-		fmt.Println("usage: <application> <start/stop/restart>")
+		fmt.Println("usage: <application> <start/stop>")
 	}
 }
