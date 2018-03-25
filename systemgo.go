@@ -100,17 +100,17 @@ func main() {
 				select {
 				case event := <-watcher.Events:
 					fmt.Println("\nevent:", event)
-                    if event.Op&fsnotify.Chmod == fsnotify.Chmod {
-                        fmt.Println("Rebuild issued, restarting", cmd.Process.Pid)
-                        kill := exec.Command("kill", "-9", strconv.Itoa(cmd.Process.Pid))
-                        kill.Start()
-                        cmd.Process.Kill()
-                        cmd.Run()
-                        run := exec.Command("./systemgo", pn, "start")
-                        run.Start()
-                        os.Exit(1)
-                    }
-    			case err := <-watcher.Errors:
+					if event.Op&fsnotify.Chmod == fsnotify.Chmod {
+						fmt.Println("Rebuild issued, restarting", cmd.Process.Pid)
+						kill := exec.Command("kill", "-9", strconv.Itoa(cmd.Process.Pid))
+						kill.Start()
+						cmd.Process.Kill()
+						cmd.Run()
+						run := exec.Command("./systemgo", pn, "start")
+						run.Start()
+						os.Exit(1)
+					}
+				case err := <-watcher.Errors:
 					fmt.Println("error:", err)
 				}
 			}
@@ -121,7 +121,7 @@ func main() {
 			fmt.Println(err)
 		}
 
-        <-done
+		<-done
 
 		watcher.Close()
 	case "stop":
