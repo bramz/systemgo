@@ -13,53 +13,9 @@ import (
 	"time"
 )
 
-type Proc struct {
-	Name string
-	Pid  int
-}
-
-func (p *Proc) SetName(Name string) {
-	p.Name = Name
-}
-
-func (p *Proc) GetName() string {
-	return p.Name
-}
-
-func (p *Proc) SetPid(Pid int) {
-	p.Pid = Pid
-}
-
-func (p *Proc) GetPid() int {
-	return int(p.Pid)
-}
-
-func watchProc(file string) error {
-	initStat, err := os.Stat(file)
-	if err != nil {
-		return err
-	}
-
-	for {
-		stat, err := os.Stat(file)
-		if err != nil {
-			return err
-		}
-
-		if stat.Size() != initStat.Size() || stat.ModTime() != initStat.ModTime() {
-			break
-		}
-
-		time.Sleep(1 * time.Second)
-	}
-	return nil
-}
-
 func main() {
 	pn := os.Args[1]
 	use := os.Args[2]
-	p := new(Proc)
-	p.SetName(pn)
 	filename := strings.TrimPrefix(pn, "bin/")
 
 	switch use {
