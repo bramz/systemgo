@@ -85,7 +85,7 @@ func TestStartTask(name string, filename string) {
 	pid := []byte(strconv.Itoa(cmd.Process.Pid))
 	file.Write(pid)
 	fmt.Println("Started task", name)
-	TestwatchTask(cmd, name)
+	TestWatchTask(cmd, name)
 	return
 
 }
@@ -129,11 +129,32 @@ func TestWatchTask(cmd *exec.Cmd, name string) {
 	watcher.Close()
 }
 
+
 func TestStopTask(name string) {
     fmt.Println("Stopping task", name)
+    pid, err := ioutil.ReadFile(".systemgo/pidfiles/" + name + ".pid")
+    spid := string(pid)
+    out, err := exec.Command("kill", "-9", spid).CombinedOutput()
+    if err != nil {
+        fmt.Println(err)
+        return
+    } else {
+        fmt.Println("Stopping", name, out)
+        out.Run()
+        return
+    }
+    return
+}
+
+func TestRestartTask(pid int, name string) {
+    fmt.Println("Restarting task", name)
+    kill := exec.Command("kill", "-9", strconv.Itoa(pid))
+    kill.Start()
+    cmd.Process.Kill()
+    cmd.Run()
+    run := exec.Command("./systemgo", name, "start")
+    run.Start()
     os.Exit(1)
     return
 }
 
-func TestRestartTask(name string) {
-}
