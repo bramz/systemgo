@@ -1,0 +1,4 @@
+child:
+    name: httpd
+    bin: /home/wired/systemgo/bin
+    

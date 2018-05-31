@@ -1,0 +1,6 @@
+server:
+    port: 1337
+
+parent:
+    name: systemgo
+    root: /home/wired/systemgo        
