@@ -2,17 +2,13 @@ package systemgo
 
 import (
     "fmt"
-    "github.com/fsnotify/fsnotify"
-    "io/ioutil"
     "os"
-    "os/exec"
-    "strconv"
     "strings"
-    "github.com/bramz/lib/task"
+    "github.com/bramz/lib"
 )
 
 func cmdLine() {
-    t := &Task{
+    t := &lib.Task{
         Self:     os.Args[0],
         Name:     os.Args[1],
         State:    os.Args[2],
@@ -23,11 +19,11 @@ func cmdLine() {
 
     switch t.State {
     case "start":
-        startTask(t.Name, t.Filename)
+        lib.StartTask(t.Name, t.Filename)
     case "stop":
-        stopTask(t.Name)
+        lib.StopTask(t.Name)
     case "restart":
-        restartTask(t.Pid, t.Name)
+        lib.RestartTask(t.Pid, t.Name)
     default:
         fmt.Println("usage: <application> <start/stop/restart>")
     }

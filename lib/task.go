@@ -1,6 +1,12 @@
 package lib
 
 import (
+    "fmt"
+    "github.com/fsnotify/fsnotify"
+    "io/ioutil"
+    "os"
+    "os/exec"
+    "strconv"
 )
 
 type Task struct {
@@ -13,7 +19,7 @@ type Task struct {
     Cmd      string
 }
 
-func startTask(name string, filename string) {
+func StartTask(name string, filename string) {
     cmd := exec.Command(name)
     err := cmd.Start()
 
@@ -76,7 +82,7 @@ func watchTask(cmd *exec.Cmd, name string) {
     watcher.Close()
 }
 
-func stopTask(name string) {
+func StopTask(name string) {
     fmt.Println("Stopping task", name)
     pid, err := ioutil.ReadFile(".systemgo/pidfiles/" + name + ".pid")
     spid := string(pid)
@@ -92,7 +98,7 @@ func stopTask(name string) {
     return
 }
 
-func restartTask(pid int, name string) {
+func RestartTask(pid int, name string) {
     fmt.Println("Restarting task", name)
     kill := exec.Command("kill", "-9", strconv.Itoa(pid))
     kill.Start()
